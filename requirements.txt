@@ -1,0 +1,7 @@
+web3
+sqlalchemy
+asyncpg
+alembic
+fastapi
+uvicorn
+rsa
