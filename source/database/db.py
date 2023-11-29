@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from pydantic import PostgresDsn
 from typing import AsyncIterator
 
-from .settings import get_db_settings
+from database.settings import get_db_settings
 
 Base = declarative_base()
 

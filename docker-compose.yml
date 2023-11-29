@@ -8,6 +8,8 @@ services:
       dockerfile: "./Dockerfile"
     volumes:
       - "./source:/source"
+      - "./docker_entrypoints:/entrypoints"
+    entrypoint: "/entrypoints/entrypoint.sh"
     restart: unless-stopped
     depends_on:
       - db

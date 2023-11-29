@@ -1,1 +1,1 @@
-from .database import get_session
+from .db import get_session
