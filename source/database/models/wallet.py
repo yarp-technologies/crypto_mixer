@@ -15,7 +15,6 @@ class Wallet(Base):
     def __init__(self, **data):
         super().__init__(**data)
         self.private_key = encode_data(self.private_key)
-    
 
     @property
     def decoded_private_key(self) -> str:

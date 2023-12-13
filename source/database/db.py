@@ -20,12 +20,9 @@ DATABASE_URI = PostgresDsn.build(
 )
 
 ENGINE = create_async_engine(str(DATABASE_URI))
+SessionObject = sessionmaker(bind=ENGINE, class_=AsyncSession)
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
-    session = sessionmaker(
-        bind=ENGINE,
-        class_=AsyncSession,
-    )
-    async with session() as connection:
+    async with SessionObject() as connection:
         yield connection

@@ -2,8 +2,7 @@ import web3
 from web3.exceptions import TimeExhausted
 
 from .schemas import Transaction, Credentials
-from custom_types import TxHash
-from typing import Any
+from custom_types import TxHash, Address
 
 
 class BlockchainConnector:
@@ -12,6 +11,9 @@ class BlockchainConnector:
         self.web3 = web3.AsyncWeb3(provider)
         self.default_gas_value = default_gas_value
 
+    async def get_balance(self, address: Address) -> int:
+        return await self.web3.eth.get_balance(address)
+
     async def get_tx(self, tx_hash: TxHash) -> Transaction | None:
         tx = await self.web3.eth.get_transaction(tx_hash)
         if tx is None:
@@ -19,18 +21,22 @@ class BlockchainConnector:
         return Transaction(**tx)
 
     async def execute_tx(self, tx: Transaction, credentials: Credentials) -> TxHash | None:
+        await self.fill_tx(tx)
         tx_dict = tx.to_tx_dict()
-        await self._fill_tx(tx_dict)
         signed_tx = self.web3.eth.account.sign_transaction(
             tx_dict, credentials.private_key)
         tx_hash = await self.web3.eth.send_raw_transaction(signed_tx.rawTransaction)
         return await self._wait_for_tx_execution(tx_hash)
 
-    async def _fill_tx(self, tx_dict: dict[str, Any]):
-        tx_dict["chainId"] = await self.web3.eth.chain_id
-        tx_dict["nonce"] = await self.web3.eth.get_transaction_count(tx_dict["from"])
-        tx_dict["gasPrice"] = await self.web3.eth.gas_price
-        tx_dict["gas"] = self.default_gas_value
+    async def fill_tx(self, tx: Transaction):
+        if tx.chain_id is None:
+            tx.chain_id = await self.web3.eth.chain_id
+        if tx.nonce is None:
+            tx.nonce = await self.web3.eth.get_transaction_count(tx.address_from)
+        if tx.gas_price is None:
+            tx.gas_price = await self.web3.eth.gas_price
+        if tx.gas is None:
+            tx.gas = self.default_gas_value
 
     async def _wait_for_tx_execution(self, tx_hash: str) -> TxHash | None:
         try:
